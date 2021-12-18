@@ -72,24 +72,28 @@ const CreateMessage = ({ chattingTo, currentUser, MessagesRef, scroller }) => {
     // console.log(newMessage);
   }
   return (
-    <form onSubmit={handleSubmit} style={{ position: "relative", textAlign: 'right', justifyContent: "flex-end", marginTop: '1.5rem', display: 'flex' }}>
+    <form onSubmit={handleSubmit} style={{ position: "relative", textAlign: 'right', justifyContent: "flex-end", marginTop: '1.5rem', display: 'flex', marginRight: "2rem", paddingBottom: "2rem" }}>
       <input value={message} type="text" onChange={(e) => setMessage(e.target.value)} style={{ width: "100%", maxWidth: "400px", padding: "0.25rem 1rem", border: "1px solid #bebebe", borderRadius: '1rem' }}></input>
       <button type="submit" style={{ fontFamily: "Poppins", color: "black", background: "white", border: "0.5px solid #bebebe", padding: " 0.25rem 1rem", borderRadius: '1rem', marginLeft: '1rem' }}>Submit</button>
     </form>
   )
 }
 
-const MessagesView = ({ messages, currentUser, chattingTo }) => {
-  return messages
-    .filter(m => (m.from.toString() === currentUser.uid.toString() && m.to.toString() === chattingTo.toString()) ||
-      (m.from.toString() === chattingTo.toString() && m.to.toString() === currentUser.uid.toString()))
-    .map(el => {
-      if (el.from.toString() === currentUser.uid.toString()) {
-        return <p style={{ textAlign: 'right' }} > {el.message} <sub>{el.status}</sub></p>
-      } else {
-        return <p style={{ textAlign: 'left' }}> {el.message} </p>
-      }
-    })
+const MessagesView = ({ messages, currentUser, chattingTo, scroller }) => {
+  return (
+    <div style={{ padding: '2rem 2rem', borderRadius: "5%", width: 575, height: "300px", overflowY: "scroll", position: "relative", margin: '0.25rem' }}>
+      {messages
+        .filter(m => (m.from.toString() === currentUser.uid.toString() && m.to.toString() === chattingTo.toString()) ||
+          (m.from.toString() === chattingTo.toString() && m.to.toString() === currentUser.uid.toString()))
+        .map(el => {
+          if (el.from.toString() === currentUser.uid.toString()) {
+            return <p style={{ textAlign: 'right' }} > {el.message} <sub>{el.status}</sub></p>
+          } else {
+            return <p style={{ textAlign: 'left' }}> {el.message} </p>
+          }
+        })}
+      <div ref={scroller}></div>
+    </div>)
 }
 const ChatBox = ({ chattingTo, currentUser, MessagesRef, messages }) => {
 
@@ -140,10 +144,10 @@ const ChatBox = ({ chattingTo, currentUser, MessagesRef, messages }) => {
 
 
   return (chattingTo &&
-    <div style={{ border: '1px solid #bebebe', padding: '2rem 2rem', borderRadius: "5%", width: 575, height: 'auto', maxHeight: "300px", overflowY: "scroll", position: "relative", margin: '0.25rem' }}>
-      {messages ? <MessagesView messages={messages} chattingTo={chattingTo} currentUser={currentUser}></MessagesView> : "no messages to show"}
+    <div style={{ border: '1px solid #bebebe', borderRadius: "5%", minHeight: "300px", }} >
+      {messages ? <MessagesView scroller={scroller} messages={messages} chattingTo={chattingTo} currentUser={currentUser}></MessagesView> : "no messages to show"}
       <CreateMessage scroller={scroller} chattingTo={chattingTo} currentUser={currentUser} MessagesRef={MessagesRef}></CreateMessage>
-      <div ref={scroller}></div>
+
     </div>)
 }
 
@@ -196,7 +200,7 @@ const Users = ({ currentUser, setChattingTo, chattingTo }) => {
   // console.log(currentUser);
   if (users) {
     return (
-      <div style={{ border: '1px solid #bebebe', padding: '2rem 2rem', borderRadius: "5%", width: "200px", margin: '0.25rem' }}>
+      <div style={{ border: '1px solid #bebebe', padding: '2rem 2rem', borderRadius: "1.75rem", width: "200px", margin: '0.25rem' }}>
         <h3 style={{ textAlign: 'center' }}>Friends</h3>
         {users.filter(el => el.id != currentUser.uid).map(user => <p onClick={() => setChattingTo(user.id)} key={user.id} style={{ background: (chattingTo && chattingTo === user.id.toString()) ? "#aae3ff " : "white", cursor: 'pointer', textAlign: 'center', borderRadius: '0.5rem' }}>{user.username} <b style={{ color: user.status === "online" ? "green" : "red" }}>{user.status}</b></p>)
         }
@@ -215,7 +219,7 @@ const App = () => {
   // console.log(user);
   useEffect(() => {
     if (user) {
-      // setChattingTo(null);
+      setChattingTo(null);
       const UsersRef = firestore.collection('users');
       console.log(user.id);
       UsersRef.doc(user.uid).set({
