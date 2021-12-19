@@ -125,19 +125,23 @@ const ChatBox = ({ chattingTo, currentUser, MessagesRef, messages }) => {
 
 
   useEffect(() => {
-    if (chattingTo !== null)
+    if (chattingTo !== null) {
+
       MessagesRef
         .where('to', '==', currentUser.uid.toString())
         .where('from', '==', chattingTo.toString())
         .where('status', '==', 'delivered')
         .get().then(el => {
           el.forEach(doc => {
+            // console.log("updating from use effect to seen");
             MessagesRef.doc(doc.id).update({
               status: "seen"
             })
           })
 
         })
+    }
+    // console.log("from use effect");
   }, [chattingTo])
 
   // console.log(messages);
@@ -156,7 +160,7 @@ const ChatView = ({ currentUser, chattingTo, setChattingTo, messages, MessagesRe
   return <>
     <div style={{ maxWidth: 940, display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', flexShrink: "2" }}>
       <p style={{ marginRight: '2rem', fontFamily: "Poppins" }}>logged in as<b> {currentUser.displayName}</b></p>
-      <SignOut currentUser={currentUser}></SignOut>
+      <SignOut setChattingTo={setChattingTo} currentUser={currentUser}></SignOut>
     </div>
     <div style={{ maxWidth: 1240, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: '2rem', flexWrap: 'wrap' }}>
       <Users currentUser={currentUser} setChattingTo={setChattingTo} chattingTo={chattingTo}> </Users>
@@ -174,11 +178,12 @@ const SignIn = () => {
   return <button style={{ marginTop: '2rem', cursor: 'pointer', fontFamily: "Poppins", color: "black", background: "white", border: "0.5px solid #bebebe", padding: " 0.25rem 1rem", borderRadius: '1rem' }} onClick={SignInWithGoogle}>Signin with google</button>
 }
 
-const SignOut = ({ currentUser }) => {
+const SignOut = ({ currentUser, setChattingTo }) => {
   const SignOutFromGoogle = () => {
     auth.currentUser && auth.signOut().then(e => {
       const UsersRef = firestore.collection('users');
       console.log(currentUser.id);
+      setChattingTo(null);
       UsersRef.doc(currentUser.uid).update({
         status: "offline",
       })
